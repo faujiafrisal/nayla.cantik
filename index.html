@@ -1,0 +1,736 @@
+-<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>for Nayla.</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Cormorant Garamond for serif headings & Plus Jakarta Sans for body -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        journal: {
+                            bg: '#F5EFE6',
+                            light: '#FBF8F2',
+                            beige: '#E8DED0',
+                            brown: '#8B7562',
+                            dark: '#3E342D',
+                            accent: '#B9A38D',
+                            darker: '#2C2520'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'serif'],
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            background-color: #F5EFE6;
+            color: #3E342D;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+            selection-background-color: #E8DED0;
+        }
+
+        h1, h2, h3, .font-serif {
+            font-family: 'Cormorant Garamond', serif;
+        }
+
+        /* Subtle grain background overlay */
+        .grain-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+            opacity: 0.25;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F5EFE6;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #E8DED0;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #B9A38D;
+        }
+
+        /* Custom Cursor for Desktop */
+        @media (min-width: 1024px) {
+            body {
+                cursor: default;
+            }
+            .custom-cursor {
+                pointer-events: none;
+                position: fixed;
+                width: 24px;
+                height: 24px;
+                border: 1px solid #8B7562;
+                border-radius: 50%;
+                transform: translate(-50%, -50%);
+                transition: width 0.2s, height 0.2s, background-color 0.2s;
+                z-index: 10000;
+                opacity: 0.6;
+            }
+            a:hover ~ .custom-cursor, button:hover ~ .custom-cursor, .interactive:hover ~ .custom-cursor {
+                width: 40px;
+                height: 40px;
+                background-color: rgba(232, 222, 208, 0.3);
+                border-color: #3E342D;
+            }
+        }
+
+        /* Editorial image styles */
+        .editorial-img {
+            filter: grayscale(15%) contrast(105%);
+            transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease;
+        }
+        .editorial-img:hover {
+            filter: grayscale(0%) contrast(100%);
+            transform: scale(1.02);
+        }
+
+        /* Fade-in up scroll animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-[#E8DED0] selection:text-[#3E342D]">
+
+    <div class="grain-overlay"></div>
+    <div class="custom-cursor hidden lg:block" id="cursor"></div>
+
+    <!-- AUDIO CONTROLS (Floating minimal button) -->
+    <div class="fixed top-6 right-6 z-50 flex items-center gap-3">
+        <label class="flex items-center gap-2 px-3 py-2 rounded-full border border-[#8B7562] bg-[#FBF8F2] backdrop-blur-md text-[11px] tracking-wider text-[#3E342D] hover:border-[#3E342D] hover:bg-[#E8DED0] transition-all duration-300 shadow-md cursor-pointer">
+            <span>🎵 upload lagu</span>
+            <input type="file" accept="audio/*" class="hidden" id="audioUpload">
+        </label>
+        <button id="musicToggle" class="flex items-center gap-2 px-3.5 py-2 rounded-full border border-[#8B7562] bg-[#FBF8F2] backdrop-blur-md text-xs tracking-wider text-[#3E342D] hover:border-[#3E342D] hover:bg-[#E8DED0] transition-all duration-300 shadow-md">
+            <span id="musicIcon" class="inline-block w-2.5 h-2.5 rounded-full bg-[#8B7562]"></span>
+            <span id="musicText" class="font-medium">sound: off</span>
+        </button>
+    </div>
+
+    <!-- AUDIO ELEMENT with reliable fallback source -->
+    <audio id="bgMusic" loop preload="auto">
+        <source src="laufey.mp3.mp3" type="audio/mp3">
+    </audio>
+
+    <div id="introScreen" class="fixed inset-0 z-40 bg-[#F5EFE6] flex flex-col items-center justify-center px-6 text-center transition-opacity duration-1000 ease-in-out">
+        <div class="space-y-6 max-w-md">
+            <h1 class="text-3xl md:text-4xl font-serif font-medium text-[#3E342D] tracking-wide reveal active">
+                for <span id="introName">Nayla</span>.
+            </h1>
+            <p class="text-sm md:text-base font-light text-[#8B7562] leading-relaxed reveal active" style="transition-delay: 200ms;">
+                a little corner of the internet,<br>made just for you.
+            </p>
+            <div class="pt-4 reveal active" style="transition-delay: 400ms;">
+                <button id="enterBtn" class="group inline-flex items-center gap-2 text-sm tracking-widest text-[#3E342D] border-b border-[#3E342D]/40 pb-1 hover:border-[#3E342D] transition-all duration-300">
+                    come in <span class="transition-transform duration-300 group-hover:translate-x-1">→</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="mainContent" class="opacity-0 transition-opacity duration-1000 pointer-events-none">
+
+        <!-- HERO SECTION -->
+        <header class="min-h-screen flex flex-col justify-between px-6 md:px-16 lg:px-24 py-12 relative">
+            <div class="flex justify-between items-center text-xs tracking-widest text-[#8B7562] uppercase">
+                <span>journal no. 01</span>
+                <span id="headerDate">2026</span>
+            </div>
+
+            <div class="my-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center py-12">
+                <div class="lg:col-span-8 space-y-6">
+                    <h1 class="text-6xl md:text-8xl lg:text-9xl font-serif font-normal text-[#3E342D] tracking-tight leading-none" id="heroName">
+                        Nayla
+                    </h1>
+                    <p class="text-lg md:text-xl font-light text-[#8B7562] max-w-md leading-relaxed font-serif italic">
+                        some people make ordinary days feel a little more special.
+                    </p>
+                </div>
+                <!-- Compact & Delicate Photo Frame with Upload -->
+                <div class="lg:col-span-4 flex justify-center lg:justify-end">
+                    <div class="relative w-64 md:w-72 group">
+                        <div class="absolute -inset-2 bg-[#E8DED0]/40 rounded-lg transform rotate-1 transition-transform group-hover:rotate-0 duration-500"></div>
+                        <div class="relative bg-[#FBF8F2] p-2.5 rounded shadow-sm border border-[#E8DED0]">
+                            <img id="heroImage" src="naylakkk.img.jpeg" alt="Nayla" class="w-full h-[260px] object-cover rounded editorial-img cursor-pointer" onclick="openLightbox(this.src, 'a quiet afternoon.')">
+                            <label class="absolute top-4 right-4 bg-[#3E342D]/80 text-[#FBF8F2] text-[10px] px-2.5 py-1 rounded cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity shadow-md">
+                                ganti foto
+                                <input type="file" accept="image/*" class="hidden" id="heroUpload">
+                            </label>
+                            <p class="mt-2 text-[11px] text-center font-light tracking-widest text-[#8B7562]">a quiet afternoon.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-center pb-4">
+                <a href="#about" class="animate-bounce text-[#8B7562] hover:text-[#3E342D] transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                </a>
+            </div>
+        </header>
+
+        <section id="about" class="py-24 px-6 md:px-16 lg:px-32 max-w-4xl mx-auto">
+            <div class="text-xs uppercase tracking-widest text-[#8B7562] mb-12 text-center reveal">
+                section 01 — about
+            </div>
+            <h2 class="text-3xl md:text-5xl font-serif text-center mb-20 text-[#3E342D] reveal">
+                little things about you
+            </h2>
+
+            <div class="space-y-16 text-center max-w-xl mx-auto text-lg md:text-2xl font-serif font-light text-[#3E342D]">
+                <div class="reveal p-4 transition-all hover:bg-[#FBF8F2]/60 rounded-xl">
+                    <p class="italic">"the way you smile"</p>
+                </div>
+                <div class="reveal p-4 transition-all hover:bg-[#FBF8F2]/60 rounded-xl">
+                    <p class="italic">"the little things you notice"</p>
+                </div>
+                <div class="reveal p-4 transition-all hover:bg-[#FBF8F2]/60 rounded-xl">
+                    <p class="italic">"the way you make conversations feel easy"</p>
+                </div>
+                <div class="reveal p-4 transition-all hover:bg-[#FBF8F2]/60 rounded-xl">
+                    <p class="italic">"your random little habits"</p>
+                </div>
+                <div class="reveal p-4 transition-all hover:bg-[#FBF8F2]/60 rounded-xl font-medium text-[#8B7562]">
+                    <p>"and all the things that make you, you."</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="memories" class="py-24 px-6 md:px-16 lg:px-24 bg-[#FBF8F2]">
+            <div class="max-w-5xl mx-auto">
+                <div class="text-xs uppercase tracking-widest text-[#8B7562] mb-4 text-center reveal">
+                    section 02 — gallery
+                </div>
+                <h2 class="text-3xl md:text-5xl font-serif text-center mb-16 text-[#3E342D] reveal">
+                    some moments worth keeping
+                </h2>
+
+                <!-- Compact Editorial Masonry Gallery Grid with Upload -->
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center justify-center" id="galleryGrid">
+                    <!-- Rendered dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <section id="timeline" class="py-24 px-6 md:px-16 lg:px-32 max-w-4xl mx-auto">
+            <div class="text-xs uppercase tracking-widest text-[#8B7562] mb-4 text-center reveal">
+                section 03 — timeline
+            </div>
+            <h2 class="text-3xl md:text-5xl font-serif text-center mb-16 text-[#3E342D] reveal">
+                our little timeline
+            </h2>
+
+            <div class="space-y-6" id="timelineContainer">
+                <!-- Timeline items rendered dynamically -->
+            </div>
+        </section>
+
+        <section id="letter" class="py-24 px-6 md:px-16 lg:px-24 bg-[#E8DED0]/30 border-y border-[#E8DED0]/60">
+            <div class="max-w-2xl mx-auto bg-[#FBF8F2] p-8 md:p-14 rounded-xl shadow-sm border border-[#E8DED0] relative reveal">
+                <div class="absolute -top-3 right-8 bg-[#F5EFE6] px-3 py-1 text-[10px] uppercase tracking-widest text-[#8B7562] border border-[#E8DED0] rounded">
+                    personal letter
+                </div>
+                
+                <h3 class="text-2xl md:text-3xl font-serif text-[#3E342D] mb-8" id="letterTitle">
+                    for you, Nayla.
+                </h3>
+                
+                <div class="space-y-4 font-serif text-lg md:text-xl text-[#3E342D] font-light leading-relaxed whitespace-pre-line" id="letterContent">
+                    Hi, Nayla.
+                    I don't really know how to put everything into words,
+                    so I made this little place instead.
+                    Nothing too complicated.
+                    Just a collection of little things,
+                    memories,
+                    and reasons why you're special to me.
+                    I hope whenever you come back here,
+                    it reminds you of something good.
+                </div>
+
+                <div class="mt-10 pt-6 border-t border-[#E8DED0] flex justify-between items-center">
+                    <span class="text-sm font-serif italic text-[#8B7562]" id="letterSignature">— uje ganteng</span>
+                    <span class="text-xs tracking-widest text-[#8B7562]/60 uppercase">digital journal entry</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="surprise" class="py-24 px-6 text-center max-w-xl mx-auto">
+            <div class="reveal space-y-8">
+                <button id="surpriseBtn" class="px-6 py-3 rounded-full border border-[#8B7562] text-[#3E342D] text-sm tracking-wider hover:bg-[#8B7562] hover:text-[#FBF8F2] transition-all duration-300 shadow-sm inline-flex items-center gap-2">
+                    there's something here <span>→</span>
+                </button>
+
+                <!-- Hidden Surprise Note -->
+                <div id="surpriseNote" class="hidden opacity-0 transform translate-y-4 transition-all duration-700 bg-[#FBF8F2] p-8 rounded-xl border border-[#E8DED0] shadow-sm text-center">
+                    <p class="font-serif text-xl md:text-2xl text-[#3E342D] italic leading-relaxed">
+                        "you are, and probably always will be, one of my favorite parts of this life."
+                    </p>
+                    <div class="mt-4 text-xs tracking-widest text-[#8B7562] uppercase">
+                        — quietly kept for you
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FINAL SECTION -->
+        <footer class="bg-[#E8DED0]/40 py-24 px-6 text-center border-t border-[#E8DED0]">
+            <div class="max-w-md mx-auto space-y-8 reveal">
+                <p class="text-2xl md:text-3xl font-serif text-[#3E342D]">
+                    that's all.
+                </p>
+                <p class="text-sm md:text-base font-light text-[#8B7562] leading-relaxed">
+                    just wanted to make something<br>you could call yours.
+                </p>
+                <div class="text-3xl font-serif text-[#3E342D] pt-2">
+                    <span id="finalName">Nayla</span> ♡
+                </div>
+                <div class="pt-8 text-xs tracking-widest text-[#8B7562]/80 uppercase space-y-4">
+                    <p>made with a little too much thought.</p>
+                    <div>
+                        <button id="restartBtn" class="inline-flex items-center gap-1.5 text-xs text-[#3E342D] hover:text-[#8B7562] transition-colors border-b border-[#3E342D]/30 pb-0.5">
+                            start again ↺
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- FULLSCREEN LIGHTBOX MODAL -->
+    <div id="lightbox" class="fixed inset-0 z-50 bg-[#2C2520]/90 backdrop-blur-md flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+        <button onclick="closeLightbox()" class="absolute top-6 right-6 text-[#FBF8F2] text-xl p-2 hover:opacity-75 transition-opacity">✕</button>
+        <div class="max-w-4xl max-h-[85vh] text-center space-y-3">
+            <img id="lightboxImg" src="lala.img.jpeg" alt="Fullscreen preview" class="max-w-full max-h-[75vh] object-contain rounded mx-auto shadow-2xl">
+            <p id="lightboxCaption" class="text-sm font-serif italic text-[#FBF8F2]/80 tracking-wide"></p>
+        </div>
+    </div>
+
+    <!-- TIMELINE STORY MODAL -->
+    <div id="timelineModal" class="fixed inset-0 z-50 bg-[#2C2520]/60 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-[#FBF8F2] max-w-md w-full p-8 rounded-xl shadow-xl border border-[#E8DED0] relative transform scale-95 transition-transform duration-300" id="timelineModalContent">
+            <button onclick="closeTimelineModal()" class="absolute top-4 right-4 text-[#3E342D] text-lg p-1 hover:opacity-75 transition-opacity">✕</button>
+            <span id="modalStepNum" class="text-xs uppercase tracking-widest text-[#8B7562]">01</span>
+            <h3 id="modalTitle" class="text-2xl font-serif text-[#3E342D] mt-1 mb-4">The first hello</h3>
+            <p id="modalDesc" class="font-serif text-base text-[#3E342D]/80 leading-relaxed italic">Detailed story goes here...</p>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT CONFIGURATION & INTERACTION -->
+    <script>
+        const websiteData = {
+            herName: "Nayla",
+            myName: "uje ganteng",
+            music: "https://assets.mixkit.co/music/preview/mixkit-a-very-sad-story-49.mp3",
+            gallery: [
+                {
+                    src: "file:///C:/Users/ASUS/Downloads/nay/nayi.jpeg.jpeg",
+                    caption: "",
+                    span: "md:col-span-5"
+                },
+                {
+                    src: "file:///C:/Users/ASUS/Downloads/nay/nayla.jpeg.jpeg",
+                    caption: "",
+                    span: "md:col-span-7"
+                },
+                {
+                    src: "file:///C:/Users/ASUS/Downloads/nay/lala.jpg%20(2).jpeg",
+                    caption: "",
+                    span: "md:col-span-6"
+                },
+                {
+                    src: "file:///C:/Users/ASUS/Downloads/uje.jpeg.jpeg",
+                    caption: "",
+                    span: "md:col-span-6"
+                }
+            ],
+            timeline: [
+                {
+                    number: "01",
+                    title: "The first hello",
+                    summary: "How a simple greeting turned into something memorable.",
+                    story: "It started with a casual conversation that somehow felt completely natural from the very first sentence. Nothing rushed, just two people crossing paths at the right time."
+                },
+                {
+                    number: "02",
+                    title: "The first conversation",
+                    summary: "Hours passing by without realizing it.",
+                    story: "We talked about ordinary things, yet every word held a quiet charm. That was the moment I realized talking to you was something I could do endlessly."
+                },
+                {
+                    number: "03",
+                    title: "That one memorable day",
+                    summary: "A day filled with simple moments and good company.",
+                    story: "No grand events or crowded places—just good weather, easy laughter, and the realization that ordinary moments become special when shared with the right person."
+                },
+                {
+                    number: "04",
+                    title: "More memories",
+                    summary: "Collecting small fragments of happiness along the way.",
+                    story: "From random shared playlists to quiet inside jokes, every little memory added another layer of warmth to our days."
+                },
+                {
+                    number: "05",
+                    title: "Right now",
+                    summary: "A quiet corner made just to appreciate you.",
+                    story: "And here we are now. Still finding joy in the little things, still appreciating how nice it is to have you around in this busy world."
+                }
+            ]
+        };
+
+        // Populate dynamic data
+        document.getElementById('introName').textContent = websiteData.herName;
+        document.getElementById('heroName').textContent = websiteData.herName;
+        document.getElementById('letterTitle').textContent = "For Lalaaa";
+        document.getElementById('letterSignature').textContent = `— ${websiteData.myName}`;
+        document.getElementById('finalName').textContent = websiteData.herName;
+
+        // Render Timeline items
+        const timelineContainer = document.getElementById('timelineContainer');
+        function renderTimeline() {
+            timelineContainer.innerHTML = '';
+            websiteData.timeline.forEach((item) => {
+                const div = document.createElement('div');
+                div.className = "reveal group cursor-pointer bg-[#FBF8F2] p-6 rounded-xl border border-[#E8DED0] hover:border-[#8B7562] transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm active";
+                div.onclick = () => openTimelineModal(item);
+                div.innerHTML = `
+                    <div class="flex items-center gap-6">
+                        <span class="text-xs font-serif uppercase tracking-widest text-[#8B7562]">${item.number}</span>
+                        <h3 class="text-xl md:text-2xl font-serif text-[#3E342D] group-hover:translate-x-1 transition-transform">${item.title}</h3>
+                    </div>
+                    <div class="flex items-center justify-between md:justify-end gap-4">
+                        <p class="text-sm font-light text-[#8B7562] italic">${item.summary}</p>
+                        <span class="text-xs uppercase tracking-widest text-[#3E342D] opacity-60 group-hover:opacity-100 transition-opacity">baca →</span>
+                    </div>
+                `;
+                timelineContainer.appendChild(div);
+            });
+        }
+        renderTimeline();
+
+        // Setup Photo Upload Handlers for Hero and Gallery
+        function setupUploads() {
+            const heroImg = document.getElementById('heroImage');
+            const heroUpload = document.getElementById('heroUpload');
+            if (heroUpload) {
+                heroUpload.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            heroImg.src = event.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                };
+            }
+
+            const galleryGrid = document.getElementById('galleryGrid');
+            if (galleryGrid) {
+                galleryGrid.innerHTML = '';
+                websiteData.gallery.forEach((item, index) => {
+                    const colSpan = item.span || "md:col-span-6";
+                    const card = document.createElement('div');
+                    card.className = `${colSpan} flex flex-col items-center reveal space-y-2.5 active`;
+                    card.innerHTML = `
+                        <div class="w-64 md:w-72">
+                            <div class="relative bg-[#FBF8F2] p-2 rounded shadow-sm border border-[#E8DED0] group">
+                                <img id="galImg_${index}" src="${item.src}" alt="${item.caption}" class="w-full h-[220px] object-cover rounded editorial-img cursor-pointer" onclick="openLightbox(this.src, '${item.caption}')">
+                                <label class="absolute top-3 right-3 bg-[#3E342D]/80 text-[#FBF8F2] text-[10px] px-2 py-1 rounded cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity shadow-md">
+                                    ganti foto
+                                    <input type="file" accept="image/*" class="hidden" onchange="updateGalleryPhoto(event, ${index})">
+                                </label>
+                            </div>
+                            <p class="mt-2 text-[11px] text-center font-light tracking-wide text-[#8B7562] italic">${item.caption}</p>
+                        </div>
+                    `;
+                    galleryGrid.appendChild(card);
+                });
+            }
+        }
+
+        function updateGalleryPhoto(event, index) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    websiteData.gallery[index].src = e.target.result;
+                    const targetImg = document.getElementById(`galImg_${index}`);
+                    if (targetImg) targetImg.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        setupUploads();
+
+        // Intro Gate Transition
+        const introScreen = document.getElementById('introScreen');
+        const mainContent = document.getElementById('mainContent');
+        const enterBtn = document.getElementById('enterBtn');
+        const bgMusic = document.getElementById('bgMusic');
+        const musicToggle = document.getElementById('musicToggle');
+        const musicIcon = document.getElementById('musicIcon');
+        const musicText = document.getElementById('musicText');
+
+        let isPlaying = false;
+
+        // Helper to safely play audio
+        function toggleMusicPlayback() {
+            if (isPlaying) {
+                bgMusic.pause();
+                isPlaying = false;
+                musicText.textContent = "sound: off";
+                musicIcon.classList.remove('bg-emerald-600', 'animate-pulse');
+                musicIcon.classList.add('bg-[#8B7562]');
+            } else {
+                bgMusic.play().then(() => {
+                    isPlaying = true;
+                    musicText.textContent = "sound: on";
+                    musicIcon.classList.remove('bg-[#8B7562]');
+                    musicIcon.classList.add('bg-emerald-600', 'animate-pulse');
+                }).catch(e => {
+                    console.log("Audio play error:", e);
+                    // Fallback to Web Audio API gentle chord if audio file is blocked
+                    playAmbientTone();
+                    isPlaying = true;
+                    musicText.textContent = "sound: on (ambient)";
+                    musicIcon.classList.remove('bg-[#8B7562]');
+                    musicIcon.classList.add('bg-emerald-600', 'animate-pulse');
+                });
+            }
+        }
+
+        // Web Audio API ambient fallback generator
+        let audioCtx = null;
+        let toneInterval = null;
+        function playAmbientTone() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            
+            // Play soothing gentle chord notes periodically
+            const notes = [261.63, 329.63, 392.00, 523.25]; // C major
+            function playNote() {
+                if (!isPlaying) return;
+                try {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    const freq = notes[Math.floor(Math.random() * notes.length)];
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                    
+                    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.03, audioCtx.currentTime + 1);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 5);
+                    
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 5);
+                } catch(err) {
+                    console.log(err);
+                }
+            }
+            playNote();
+            if (!toneInterval) {
+                toneInterval = setInterval(playNote, 4000);
+            }
+        }
+
+        enterBtn.addEventListener('click', () => {
+            introScreen.classList.add('opacity-0', 'pointer-events-none');
+            mainContent.classList.remove('opacity-0', 'pointer-events-none');
+            
+            bgMusic.play().then(() => {
+                isPlaying = true;
+                musicText.textContent = "sound: on";
+                musicIcon.classList.remove('bg-[#8B7562]');
+                musicIcon.classList.add('bg-emerald-600', 'animate-pulse');
+            }).catch(e => {
+                console.log("Autoplay blocked, enabling fallback synth");
+                playAmbientTone();
+                isPlaying = true;
+                musicText.textContent = "sound: on";
+                musicIcon.classList.remove('bg-[#8B7562]');
+                musicIcon.classList.add('bg-emerald-600', 'animate-pulse');
+            });
+
+            checkScroll();
+        });
+
+        // Music Toggle Click Handler
+        musicToggle.addEventListener('click', () => {
+            if (isPlaying) {
+                bgMusic.pause();
+                isPlaying = false;
+                if (toneInterval) clearInterval(toneInterval);
+                toneInterval = null;
+                musicText.textContent = "sound: off";
+                musicIcon.classList.remove('bg-emerald-600', 'animate-pulse');
+                musicIcon.classList.add('bg-[#8B7562]');
+            } else {
+                bgMusic.play().then(() => {
+                    isPlaying = true;
+                    musicText.textContent = "sound: on";
+                    musicIcon.classList.remove('bg-[#8B7562]');
+                    musicIcon.classList.add('bg-emerald-600', 'animate-pulse');
+                }).catch(() => {
+                    playAmbientTone();
+                    isPlaying = true;
+                    musicText.textContent = "sound: on";
+                    musicIcon.classList.remove('bg-[#8B7562]');
+                    musicIcon.classList.add('bg-emerald-600', 'animate-pulse');
+                });
+            }
+        });
+
+        // Custom Audio Upload Handler
+        const audioUpload = document.getElementById('audioUpload');
+        audioUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const fileURL = URL.createObjectURL(file);
+                bgMusic.src = fileURL;
+                bgMusic.load();
+                bgMusic.play().then(() => {
+                    isPlaying = true;
+                    musicText.textContent = "sound: on (custom)";
+                    musicIcon.classList.remove('bg-[#8B7562]');
+                    musicIcon.classList.add('bg-emerald-600', 'animate-pulse');
+                }).catch(err => {
+                    console.log("Custom audio play error:", err);
+                });
+            }
+        });
+
+        // Custom Cursor movement
+        const cursor = document.getElementById('cursor');
+        document.addEventListener('mousemove', (e) => {
+            if (cursor) {
+                cursor.style.left = e.clientX + 'px';
+                cursor.style.top = e.clientY + 'px';
+            }
+        });
+
+        // Scroll Reveal
+        function checkScroll() {
+            const reveals = document.querySelectorAll('.reveal');
+            reveals.forEach(element => {
+                const windowHeight = window.innerHeight;
+                const elementTop = element.getBoundingClientRect().top;
+                const elementVisible = 100;
+                if (elementTop < windowHeight - elementVisible) {
+                    element.classList.add('active');
+                }
+            });
+        }
+        window.addEventListener('scroll', checkScroll);
+
+        // Lightbox Functions
+        function openLightbox(src, caption) {
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightboxImg');
+            const lightboxCaption = document.getElementById('lightboxCaption');
+            
+            lightboxImg.src = src;
+            lightboxCaption.textContent = caption;
+            lightbox.classList.remove('opacity-0', 'pointer-events-none');
+        }
+
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        // Timeline Modal Functions
+        function openTimelineModal(item) {
+            const modal = document.getElementById('timelineModal');
+            const modalContent = document.getElementById('timelineModalContent');
+            document.getElementById('modalStepNum').textContent = item.number;
+            document.getElementById('modalTitle').textContent = item.title;
+            document.getElementById('modalDesc').textContent = item.story;
+
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modalContent.classList.remove('scale-95');
+            modalContent.classList.add('scale-100');
+        }
+
+        function closeTimelineModal() {
+            const modal = document.getElementById('timelineModal');
+            const modalContent = document.getElementById('timelineModalContent');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+        }
+
+        // Surprise Note Interaction
+        const surpriseBtn = document.getElementById('surpriseBtn');
+        const surpriseNote = document.getElementById('surpriseNote');
+        
+        surpriseBtn.addEventListener('click', () => {
+            surpriseBtn.classList.add('hidden');
+            surpriseNote.classList.remove('hidden');
+            setTimeout(() => {
+                surpriseNote.classList.remove('opacity-0', 'translate-y-4');
+                surpriseNote.classList.add('opacity-100', 'translate-y-0');
+            }, 50);
+        });
+
+        // Restart Button
+        const restartBtn = document.getElementById('restartBtn');
+        restartBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setTimeout(() => {
+                introScreen.classList.remove('opacity-0', 'pointer-events-none');
+                mainContent.classList.add('opacity-0', 'pointer-events-none');
+            }, 600);
+        });
+
+        // Close modals on background click
+        window.onclick = function(event) {
+            const lightbox = document.getElementById('lightbox');
+            const timelineModal = document.getElementById('timelineModal');
+            if (event.target === lightbox) closeLightbox();
+            if (event.target === timelineModal) closeTimelineModal();
+        }
+    </script>
+</body>
+</html>
